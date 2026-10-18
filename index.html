@@ -1,0 +1,883 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Cemre Bitkisel Ürünler | Sanal Mağaza V49</title><style>body{margin:0;overflow:hidden;background:#17191b;color:white;font:14px system-ui}#info{position:absolute;top:12px;left:12px;background:#15191dcc;padding:12px;border-radius:10px;max-width:300px;pointer-events:none}#status{position:absolute;bottom:12px;left:12px;background:#15191dcc;padding:8px;border-radius:8px}#pad{position:absolute;bottom:20px;right:20px;display:grid;grid-template-columns:repeat(3,55px);gap:5px}button{height:50px;background:#ffffffa8;border:0;border-radius:10px;font-size:22px;touch-action:none}#look{position:absolute;right:0;top:0;width:55%;height:70%;touch-action:none}</style></head><body><div id="info"><b>CEMRE • 3D MİMARİ TASLAK</b><div>W A S D: yürü • Fare sürükle: bakış<br>Telefonda oklar: yürü • Ekranın sağında sürükle: bakış</div><small>V49: GitHub Pages üzerinden iPhone ve bilgisayarda erişim testi. Mağaza geometrisi V48 ile aynıdır.</small></div><div id="look"></div><div id="status">Girişten içeri bakış <span id="fps" style="margin-left:8px;opacity:.8"></span> <button id="quality" type="button" style="height:28px;font-size:12px;padding:0 10px;border-radius:5px;cursor:pointer">Görüntü: Dengeli</button> <button id="aa" type="button" style="height:28px;font-size:12px;padding:0 10px;border-radius:5px;cursor:pointer">Kenar: Açık</button></div><div id="pad"><span></span><button data-m="f">▲</button><span></span><button data-m="l">◀</button><button data-m="b">▼</button><button data-m="r">▶</button></div><div id="loading3d" role="status" aria-live="polite" style="position:fixed;z-index:30;top:50%;left:50%;transform:translate(-50%,-50%);background:#111d;color:white;padding:20px 22px;max-width:min(85vw,370px);border:1px solid #ffffff66;border-radius:12px;text-align:center;box-shadow:0 7px 30px #0006"><b>Cemre Sanal Mağaza</b><p id="loadingtext">3D mağaza yükleniyor…</p><small id="loadinghint">İlk açılış birkaç saniye sürebilir.</small></div><script>
+(function(){
+ var load=document.getElementById('loading3d'); var msg=document.getElementById('loadingtext');var hint=document.getElementById('loadinghint');
+ window.cemreShowError=function(details){
+   if(window.cemre3dReady)return;
+   msg.textContent='3D görüntü başlatılamadı.';
+   hint.textContent=(details||'Bağlantıyı Safari veya Chrome üzerinden HTTPS adresinden açın.')+' — Hata bilgisi: '+(details||'yükleme sorunu');
+   load.style.display='block';
+ };
+ window.addEventListener('error',function(e){if(!window.cemre3dReady)window.cemreShowError(e.message || 'JavaScript yükleme hatası');});
+ window.addEventListener('unhandledrejection',function(e){if(!window.cemre3dReady)window.cemreShowError(String(e.reason&&e.reason.message||e.reason||'Modül yükleme hatası'));});
+ window.cemreMarkReady=function(){ window.cemre3dReady=true;load.style.display='none'; };
+ window.setTimeout(function(){if(!window.cemre3dReady)window.cemreShowError('20 saniyedir 3D görüntü açılamadı. İnternet ve WebGL erişimini kontrol edin.');},20000);
+})();
+</script><script type="module">
+const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xe3e2df);const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.05,80);const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:"low-power",precision:"mediump"});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(0.8);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);scene.add(new THREE.HemisphereLight(0xffffff,0x8c8170,2.1));const sun=new THREE.DirectionalLight(0xffffff,1.2);sun.position.set(2,7,3);scene.add(sun);sun.castShadow=false;sun.shadow.mapSize.set(256,256);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=9;sun.shadow.camera.bottom=-9;sun.shadow.bias=-.00012;
+const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.85});const wall=mat(0xe9e3da),floor=mat(0xbcb9b2),black=mat(0x30383e),glass=new THREE.MeshStandardMaterial({color:0xa8d9e0,transparent:true,opacity:.23,roughness:.12,side:THREE.DoubleSide});function block(x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);scene.add(o);return o}function line(x1,z1,x2,z2,h=2.9,m=wall){const dx=x2-x1,dz=z2-z1,ang=Math.atan2(-dz,dx),len=Math.hypot(dx,dz);const o=block((x1+x2)/2,h/2,(z1+z2)/2,len,h,.12,m);o.rotation.y=ang;return o}
+// Coordinates: x along Ataturk Caddesi facade, z inward. Measured facade segments total 8.55m.
+const W=8.55,D=5.54;block(W/2,-.09,D/2,W+.5,.18,D+.5,floor);block(W/2,3.05,D/2,W+.5,.12,D+.5,mat(0xf5f2ec));
+line(0,0,0,5.54); // left
+// rear stepped outline: dimensions from supplied sketch, centimetres converted to metres
+const rear=[[0,5.54],[1.11,5.54],[1.11,5.71],[2.98,5.71],[2.98,5.54],[3.33,5.54],[3.33,5.95],[5.37,5.95],[6.54,5.95],[6.54,5.45],[6.54,3.00],[7.73,3.00]];
+for(let i=0;i<rear.length-1;i++){const a=rear[i],b=rear[i+1]; if(a[0]===5.37 && b[0]===6.54)continue; line(...a,...b);}
+// V43 measured Ataturk Caddesi front facade. All lengths in metres, BEFORE
+// global mirroring. 220cm display window +38cm pier +95cm secondary window
+// +158cm entrance +250cm display window = 761cm; remaining 12cm belongs to
+// the existing corner ending at x=7.73. The 47cm sketch callouts describe
+// the pier's neighbouring offsets and are NOT two extra glazed bays.
+const v43Front={leftGlass:[0,2.20], pier:[2.20,2.58], narrowGlass:[2.58,3.53],door:[3.53,5.11],rightGlass:[5.11,7.61]};
+const v43Frame=black;
+function v43Pane(a,b){
+ const mid=(a+b)/2,w=b-a;
+ block(mid,1.425,0,w,2.85,.012,glass);
+ // Thin black storefront joinery, deliberately no opaque full-width wall.
+ block(mid,2.84,0,w+.025,.048,.065,v43Frame);
+ block(mid,.035,0,w+.025,.07,.065,v43Frame);
+ block(a,1.425,0,.046,2.85,.065,v43Frame);
+ block(b,1.425,0,.046,2.85,.065,v43Frame);
+}
+v43Pane(...v43Front.leftGlass);
+v43Pane(...v43Front.narrowGlass);
+v43Pane(...v43Front.rightGlass);
+// The 38cm opaque structural post between the 220 and 95cm panels.
+block(2.39,1.45,0,.38,2.90,.38,wall);
+// A thin 158cm entrance frame, leaving the entire opening walkable.
+block(3.53,1.425,0,.055,2.85,.075,v43Frame);
+block(5.11,1.425,0,.055,2.85,.075,v43Frame);
+block(4.32,2.835,0,1.58,.055,.075,v43Frame);
+// V48 — Structural piers at BOTH ENDS of the undivided salt-lamp window.
+// Coordinates below are PRE-MIRROR: facade z=0; inward direction +z.
+// Only the SIDE glass pane moves 12cm toward the street-side exterior
+// (x=7.73 -> 7.85).  The hanging panel, salt-lamp shelf and front glass
+// retain their V47 positions. There are NO vertical window dividers.
+const v48PaneX=7.85;
+// Junction with 119cm hanger-panel return wall: 12cm across x,
+// and 13cm deep along the pane toward the shopfront (z:2.87 to 3.00).
+const v48ReturnColumn=block(7.79,1.45,2.935,.12,2.90,.13,wall);
+// Junction with entrance/front facade: 28.5cm along x,
+// 31.5cm depth along z, measured from the street-facing corner.
+const v48FrontColumn=block(7.79,1.45,.1575,.285,2.90,.315,wall);
+// One continuous glazed section ONLY between the two structural columns.
+const v48SideStart=.315, v48SideEnd=2.87;
+block(v48PaneX,1.425,(v48SideStart+v48SideEnd)/2,.012,2.85,v48SideEnd-v48SideStart,glass);
+// Slim perimeter frame, WITHOUT the two formerly visible internal mullions.
+for(const zz of [v48SideStart,v48SideEnd])block(v48PaneX,1.425,zz,.055,2.85,.046,black);
+for(const yy of [.035,2.84])block(v48PaneX,yy,(v48SideStart+v48SideEnd)/2,.055,.050,v48SideEnd-v48SideStart,black);
+// Side-window dimensions remain nominally 300cm corner-to-corner;
+// columns occupy 31.5cm + 13cm of that span.
+// V28 — PHOTO-REFERENCED MATERIAL AND GEOMETRY TEST, CENTER ISLAND ONLY.
+// No products, no changes to center position/footprint or any other fixture.
+// V31 — physically based laminate materials, repeatable nonuniform wood grain.
+// V32 — photographic veneer sampled from the user's ACTUAL store photograph.
+// Embedded in this standalone HTML; no external texture dependency.
+const veneerPhoto = 'data:image/jpeg;base64,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';
+const oakTexture = new THREE.Texture();
+const veneerImage = new Image();
+veneerImage.onload = () => {oakTexture.image=veneerImage;oakTexture.colorSpace=THREE.SRGBColorSpace;oakTexture.wrapS=oakTexture.wrapT=THREE.ClampToEdgeWrapping;oakTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);oakTexture.needsUpdate=true;};
+veneerImage.src=veneerPhoto;
+function oakMaterial(tint=0xffffff){return new THREE.MeshStandardMaterial({color:tint,map:oakTexture,roughness:.83,metalness:0});}
+const oakBody=oakMaterial(0xfffaf3),oakInner=oakMaterial(0xfffcf7),oakFrame=oakMaterial(0xffffff),oakTrim=oakMaterial(0xfff8ed);
+const anth=new THREE.MeshPhysicalMaterial({color:0x323a44,metalness:.02,roughness:.81,clearcoat:.06,clearcoatRoughness:.75});
+const cabinetLine=new THREE.MeshStandardMaterial({color:0x9ca4a3,roughness:.48,metalness:.16});
+const metalEdge=new THREE.MeshStandardMaterial({color:0x252a2e,metalness:.60,roughness:.43});
+const rope=new THREE.MeshStandardMaterial({color:0xb7a17c,roughness:.97,});
+const legMat=new THREE.MeshStandardMaterial({color:0xabb1b5,roughness:.23,metalness:.86});
+const showcaseGlass=new THREE.MeshPhysicalMaterial({color:0xf6fbff,transmission:.94,transparent:true,opacity:.16,roughness:.085,metalness:0,ior:1.50,thickness:.007,clearcoat:1,clearcoatRoughness:.02,depthWrite:false,side:THREE.DoubleSide});
+const sx=4.35,sz=2.35,sw=1.95,sd=1.20; // approved V27 floor position unchanged
+function bevelBox(x,y,z,w,h,d,m,r=.008){
+ // Edge chamfer built as subtle highlights around the original solid, without changing extents.
+ const item=block(x,y,z,w,h,d,m);
+ const edges=new THREE.EdgesGeometry(item.geometry,22);
+ const wire=new THREE.LineSegments(edges,new THREE.LineBasicMaterial({color:0x756c5c,transparent:true,opacity:.055}));
+ wire.position.copy(item.position);scene.add(wire);return item;
+}
+// Cabinet remains exactly 195 × 120 cm. Full-length front and back: 3 drawers above 3 doors.
+const islandCore=block(sx,.48,sz,sw,.82,sd,oakFrame);islandCore.castShadow=true;islandCore.receiveShadow=true;
+for(const zSign of [-1,1]){
+ const zFace=sz+zSign*(sd/2+.012);
+ for(let i=0;i<3;i++){
+  const w=sw/3-.033,xx=sx-sw/2+(i+.5)*sw/3;
+  bevelBox(xx,.798,zFace,w,.185,.018,anth);
+  bevelBox(xx,.395,zFace,w,.58,.018,anth);
+  const rz=zFace+zSign*.029;
+  const pts=[];for(let t=0;t<=14;t++){const u=t/14;pts.push(new THREE.Vector3(xx+(u-.5)*.11,.823-.025*Math.sin(Math.PI*u),rz));}
+  scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),28,.012,10,false),rope));
+  for(const dx of [-.055,.055])block(xx+dx,.835,rz,.010,.021,.011,rope);
+  const hx=xx+(i%2===0?.20:-.20),vertical=[];
+  for(let t=0;t<=12;t++){let u=t/12;vertical.push(new THREE.Vector3(hx+.015*Math.sin(Math.PI*u),.515-u*.12,rz));}
+  scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(vertical),24,.011,9,false),rope));
+ }
+}
+// Both short sides are smooth light oak, with no drawers or door divisions.
+for(const xSign of [-1,1])block(sx+xSign*(sw/2+.012),.48,sz,.021,.82,sd,oakFrame);
+for(const zSign of [-1,1]){
+ const zFace=sz+zSign*(sd/2+.028);
+ block(sx,.692,zFace,sw,.018,.015,oakFrame);
+ for(let i=0;i<=3;i++)block(sx-sw/2+i*sw/3,.48,zFace,.014,.83,.016,oakFrame);
+}
+for(const x of [sx-sw/2+.12,sx+sw/2-.12])for(const z of [sz-sd/2+.10,sz+sd/2-.10]){
+ const foot=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.095,20),legMat);
+ foot.position.set(x,.0475,z);scene.add(foot);
+}
+// V29: 32 open compartments. Thin rim instead of the previous 19cm-high solid oak box.
+// The approved 195 x 120cm outer footprint, position and cabinet facades remain fixed.
+const binX=sx-sw/2,binZ=sz-sd/2,cellX=sw/8,cellZ=sd/4;
+// Cabinet block finishes at y=.89. The compartment base now touches the cabinet top,
+// instead of floating ~12 cm above it as in V29.
+const trayFloor=.897, trayRim=1.017, trayWall=.008;
+// Thin recessed floor: no tall solid side apron; the real trays sit in a light oak frame.
+block(sx,trayFloor-.011,sz,sw-.012,.022,sd-.012,oakBody);
+// Continuous slim oak perimeter conceals the seam between the cabinet and trays.
+// A thin laminated band is intentional; there is no unsupported wood apron.
+for (const z of [binZ+.012,binZ+sd-.012])
+ block(sx,.898,z,sw,.023,.024,oakFrame);
+for (const x of [binX+.012,binX+sw-.012])
+ block(x,.898,sz,.024,.023,sd,oakFrame);
+for(let ix=0;ix<=8;ix++){
+ const x=binX+ix*cellX;
+ block(x,(trayFloor+trayRim)/2,sz,trayWall,trayRim-trayFloor,sd,oakInner);
+}
+for(let iz=0;iz<=4;iz++){
+ const z=binZ+iz*cellZ;
+ block(sx,(trayFloor+trayRim)/2,z,sw,trayRim-trayFloor,trayWall,oakInner);
+}
+// Thin exterior rim; nothing resembling a 20cm-tall wooden box.
+const topRimY=trayRim+.004;
+for(const z of [binZ,binZ+sd])block(sx,topRimY,z,sw+.016,.013,.018,oakTrim);
+for(const x of [binX,binX+sw])block(x,topRimY,sz,.018,.013,sd+.018,oakTrim);
+// Transparent protection glazing sits above the trays with slim dark metal edging.
+const glassBottom=1.025,glassTop=1.218;
+for(const z of [binZ-.012,binZ+sd+.012]){
+ block(sx,(glassBottom+glassTop)/2,z,sw+.018,glassTop-glassBottom,.004,showcaseGlass);
+ block(sx,glassTop,z,sw+.018,.008,.008,metalEdge);
+}
+for(const x of [binX-.012,binX+sw+.012]){
+ block(x,(glassBottom+glassTop)/2,sz,.004,glassTop-glassBottom,sd+.018,showcaseGlass);
+ block(x,glassTop,sz,.008,.008,sd+.018,metalEdge);
+}
+// 4 sliding glass lids. Adjacent lids alternate between two subtly different tracks,
+// so the panels can pass over one another (2 upper / 2 lower).
+const lidW=sw/4+.024;
+for(let i=0;i<4;i++){
+ const x=binX+(i+.5)*sw/4;
+ const raised=(i%2===1);
+ const y=glassTop+(raised?.013:.003);
+ block(x,y,sz,lidW,.006,sd-.018,showcaseGlass);
+ // Visible, fine separation line marking each independently sliding lid.
+ const railColor=raised?metalEdge:cabinetLine;
+ block(x-lidW/2+.008,y+.003,sz,.004,.005,sd-.018,railColor);
+}
+// Two thin continuous runners and two top tracks (no oversized glass hood bars).
+for(const z of [binZ-.004,binZ+sd+.004]){
+ block(sx,glassTop+.008,z,sw+.018,.007,.012,metalEdge);
+}
+// Directional highlight and very soft local fill on the focal furniture.
+for(const node of scene.children){if(node.isMesh&&Math.abs(node.position.x-sx)<1.04&&Math.abs(node.position.z-sz)<.67){node.receiveShadow=true;if(node.material!==showcaseGlass)node.castShadow=true;}}
+// Soft area-like local light (no custom shadows elsewhere in the store).
+const cabinetLight=new THREE.PointLight(0xffead6,.82,3.0,2);cabinetLight.position.set(sx,2.3,sz);scene.add(cabinetLight);
+// abstract shelf proxies, intentionally no invented products
+function shelf(x,z,w,d,rot=0){const s=block(x,1.15,z,w,2.3,d,mat(0x858780));s.rotation.y=rot;for(let j=0;j<4;j++){const b=block(x,.42+j*.52,z,w+.04,.045,d+.05,black);b.rotation.y=rot;}}
+
+// V8: Fixed architectural geometry. Coordinates below are PRE-mirror;
+// final viewer-right is the lower x side, as in approved V4–V7 controls.
+const timber=mat(0xcbb99a), dark=mat(0x343b3d), pale=mat(0xe4dfd7);
+// V33 — measured, photo-referenced left-hand shelving (centimetres -> metres).
+// The first bay begins 30cm after the entrance-side glazing. Nine straight bays;
+// the last bay wraps 90 degrees onto the rear wall. Corner is derived from the
+// actual 38.5cm-deep cabinets, not an extra freestanding diagonal cabinet.
+const leftIron=new THREE.MeshStandardMaterial({color:0x383c40,roughness:.83,metalness:0});
+const leftWood=new THREE.MeshStandardMaterial({color:0xe3cfad,roughness:.83,metalness:0});
+const leftDoor=new THREE.MeshStandardMaterial({color:0x262c35,roughness:.84,metalness:0});
+const leftRope=new THREE.MeshStandardMaterial({color:0xb4a18a,roughness:1});
+const leftColors=[0xe3ead9,0xf1e5db,0x9683a3,0xb6d5c2,0xd2b578,0xb4c4da,0xe9cbc3,0xbccca6,0xede9dc];
+const shelfWidth=.512, shelfDepth=.205, uprightDepth=.183, boardT=.03;
+const cabWidth=.515, cabDepth=.385, cabinetH=.70;
+const unitHeight=2.60, uprightHeight=1.90;
+const firstGlassGap=.30;
+const uprightSizes=[.03,.06,.03,.03,.03,.03,.03,.03,.03,.03];
+const zEdges=[firstGlassGap];
+for(let i=0;i<9;i++)zEdges.push(zEdges.at(-1)+uprightSizes[i]+shelfWidth);
+const straightEnd=zEdges.at(-1)+uprightSizes[9];
+console.assert(Math.abs(straightEnd-5.238)<.0001,'V33 straight run length must be 4.938m');
+// The left wall is x=0 in pre-mirror architectural coordinates.
+// Cabinets align their backs to the wall and project 38.5cm into the shop.
+function ropeHandle(x,y,z,axis='x'){
+ const pts=[];
+ for(let k=0;k<=14;k++){
+  const u=k/14;
+  pts.push(new THREE.Vector3(x+(axis==='x'?.022:Math.sin(u*Math.PI)*.012),y-.028*Math.sin(u*Math.PI),z+(axis==='z'?.022:Math.sin(u*Math.PI)*.012)));
+ }
+ const h=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),20,.009,6,false),leftRope);
+ scene.add(h);
+}
+function cabinetStraight(z){
+ const x=cabDepth/2;
+ block(x,.35,z,cabDepth,.70,cabWidth,leftWood);
+ block(cabDepth+.004,.245,z,.008,.425,cabWidth-.022,leftDoor);
+ block(cabDepth+.005,.545,z,.009,.23,cabWidth-.022,leftDoor);
+ block(cabDepth+.013,.555,z,.012,.010,.07,leftRope);
+ ropeHandle(cabDepth+.023,.566,z);
+ block(x,.693,z,cabDepth,.014,cabWidth,leftWood);
+}
+function shelfBox(x,y,z,colorIndex,rotation=0){
+ const m=mat(leftColors[((colorIndex%leftColors.length)+leftColors.length)%leftColors.length]);
+ const obj=block(x,y,z,.105,.155,.078,m);obj.rotation.y=rotation;
+}
+// A single continuous series of posts is shared by adjacent modules, preventing
+// the doubled vertical beams seen in the earlier schematic version.
+for(let i=0;i<uprightSizes.length;i++){
+ const z=zEdges[i]+uprightSizes[i]/2;
+ // The two posts framing the glazing-side module reach the FLOOR.
+ const isFullHeight=(i===0||i===1);
+ block(uprightDepth/2,isFullHeight?unitHeight/2:1.65,z,uprightDepth,isFullHeight?unitHeight:uprightHeight,uprightSizes[i],leftIron);
+}
+for(let bay=0;bay<9;bay++){
+ const zStart=zEdges[bay]+uprightSizes[bay];
+ const mid=zStart+shelfWidth/2;
+ const levels=bay===0?11:5;
+ // The 11-bay glazing-side column has NO base cabinet and runs from floor to 260cm.
+ // Other columns retain the measured 70cm cabinet + 190cm upper shelves.
+ const floorStart=bay===0?0:cabinetH;
+ const shelfRun=bay===0?unitHeight:uprightHeight;
+ const opening=(shelfRun-levels*boardT)/levels;
+ for(let j=0;j<levels;j++){
+  const y=floorStart+(j+1)*opening+j*boardT+boardT/2;
+  // All horizontal product-bearing boards are 3cm, except anthracite top bar.
+  block(shelfDepth/2,y,mid,shelfDepth,boardT,shelfWidth,j===levels-1?leftIron:leftWood);
+  if(j<levels-1){
+   // Existing project uses simple proxy packs; retain the same language and do
+   // not invent readable branded packaging at this architectural stage.
+   for(let k=0;k<(bay===0?3:4);k++){
+    const zz=zStart+.083+k*(shelfWidth-.166)/(bay===0?2:3);
+    const yTop=y+boardT/2;
+    shelfBox(shelfDepth*.51,yTop+.079,zz,bay*3+j+k);
+   }
+  }
+ }
+ if(bay>0)cabinetStraight(mid); // First (glazing-side) bay has no base cabinet.
+}
+// The photographed right-angle L return rests against the PERPENDICULAR REAR WALL.
+// Rear wall z=5.54; 38.5cm lower cabinet depth determines the inside corner.
+const rearWallZ=5.54,retStartX=cabDepth,retEndX=retStartX+.03+shelfWidth+.03;
+const retCabZ=rearWallZ-cabDepth/2;
+const retShelfZ=rearWallZ-shelfDepth/2;
+const retCentreX=retStartX+.03+shelfWidth/2;
+// Corner cabinet touches the last straight cabinet at the x=38.5cm plane.
+block(retCentreX,.35,retCabZ,cabWidth,.70,cabDepth,leftWood);
+block(retCentreX,.245,rearWallZ-cabDepth-.005,cabWidth-.022,.425,.008,leftDoor);
+block(retCentreX,.545,rearWallZ-cabDepth-.006,cabWidth-.022,.23,.009,leftDoor);
+block(retCentreX,.555,rearWallZ-cabDepth-.023,.075,.012,.012,leftRope);
+ropeHandle(retCentreX,.56,rearWallZ-cabDepth-.03,'z');
+block(retCentreX,.693,retCabZ,cabWidth,.014,cabDepth,leftWood);
+for(const xx of [retStartX+.015,retEndX-.015]){
+ block(xx,1.65,rearWallZ-uprightDepth/2,.03,uprightHeight,uprightDepth,leftIron);
+}
+for(let j=0;j<5;j++){
+ const y=cabinetH+(j+1)*.35+j*boardT+boardT/2;
+ block(retCentreX,y,retShelfZ,shelfWidth,boardT,shelfDepth,j===4?leftIron:leftWood);
+ if(j<4)for(let k=0;k<4;k++)shelfBox(retStartX+.11+k*.12,y+.094,retShelfZ,24+j*3+k,Math.PI/2);
+}
+// V37 — The corner is FIVE OPEN shelf bridges, not a dark vertical panel.
+// Build each with explicit world-coordinate top/bottom triangles: previous Shape
+// extrusion relied on an orientation that did not yield visible shelf faces.
+// The trapezoidal opening is derived entirely from the fixed straight run,
+// 20.5cm shelves and the perpendicular standard L module.
+const cornerOak=leftWood.clone();cornerOak.side=THREE.DoubleSide;
+const cornerAnthracite=leftIron.clone();cornerAnthracite.side=THREE.DoubleSide;
+const cornerZ0=straightEnd-.035; // overlaps the last straight shelf by 3.5cm
+const cornerX1=retStartX+.07;   // overlaps the L shelf by 4cm
+const cornerZ1=rearWallZ-shelfDepth-.045; // overlaps its front edge by 4.5cm
+const cornerOutline=[
+  [.002,cornerZ0],
+  [shelfDepth+.012,cornerZ0],
+  [cornerX1,cornerZ1],
+  [cornerX1,rearWallZ-.004],
+  [.002,rearWallZ-.004]
+];
+function bridgeShelfAt(centreY, material) {
+ const topY=centreY+boardT/2, botY=centreY-boardT/2;
+ const coords=[], normals=[];
+ function tri(a,b,c){coords.push(...a,...b,...c);}
+ const poly=cornerOutline;
+ for(let i=1;i<poly.length-1;i++){
+  tri([poly[0][0],topY,poly[0][1]],[poly[i][0],topY,poly[i][1]],[poly[i+1][0],topY,poly[i+1][1]]);
+  tri([poly[0][0],botY,poly[0][1]],[poly[i+1][0],botY,poly[i+1][1]],[poly[i][0],botY,poly[i][1]]);
+ }
+ for(let i=0;i<poly.length;i++){
+  const a=poly[i],b=poly[(i+1)%poly.length];
+  tri([a[0],topY,a[1]],[a[0],botY,a[1]],[b[0],botY,b[1]]);
+  tri([a[0],topY,a[1]],[b[0],botY,b[1]],[b[0],topY,b[1]]);
+ }
+ const g=new THREE.BufferGeometry();
+ g.setAttribute('position',new THREE.Float32BufferAttribute(coords,3));
+ g.computeVertexNormals();
+ // The final scene mirror flips mesh.position.x but does NOT flip raw
+ // BufferGeometry vertices. Pre-flip local X to keep this bridge inside shop.
+ g.scale(-1,1,1);
+ const mesh=new THREE.Mesh(g,material);
+ mesh.receiveShadow=true; scene.add(mesh);
+ return mesh;
+}
+for(let j=0;j<5;j++){
+ const y=cabinetH+(j+1)*.35+(j+.5)*boardT;
+ bridgeShelfAt(y,j===4?cornerAnthracite:cornerOak);
+}
+// Thin anthracite connector (3cm) only on the outside front diagonal;
+// it does not cover the openings between shelves.
+function slimCornerFrame(x1,z1,x2,z2,y){
+ const dx=x2-x1,dz=z2-z1, len=Math.hypot(dx,dz);
+ const beam=block((x1+x2)/2,y,(z1+z2)/2,len,.03,.03,leftIron);
+ beam.rotation.y=-Math.atan2(dz,dx);
+}
+slimCornerFrame(shelfDepth+.012,cornerZ0,cornerX1,cornerZ1,unitHeight-.015);
+// No full-height charcoal slab: the area between these five shelves is open.
+// Complete the corner's 70cm-high cabinet with a mitred facade and oak top.
+// This occupies only the natural gap between the two 38.5cm-deep cabinets.
+const cornerFootprint=new THREE.Shape();
+[[.012,straightEnd],[cabDepth,straightEnd],[cabDepth,rearWallZ-.012],[.012,rearWallZ-.012]].forEach(([x,z],i)=>i?cornerFootprint.lineTo(x,z):cornerFootprint.moveTo(x,z));
+cornerFootprint.closePath();
+// Same pre-flip for the custom corner cabinet shape; otherwise the global
+// mirror moves its vertices BEHIND the wall even though the top is in place.
+const cornerBaseGeometry=new THREE.ExtrudeGeometry(cornerFootprint,{depth:.69,bevelEnabled:false});
+cornerBaseGeometry.scale(-1,1,1);
+const cornerSolid=new THREE.Mesh(cornerBaseGeometry,leftWood);
+cornerSolid.rotation.x=Math.PI/2;cornerSolid.position.y=.69;scene.add(cornerSolid);
+// Oak worktop flush with adjoining cabinet tops.
+block(cabDepth/2,.693,(straightEnd+rearWallZ)/2,cabDepth,.014,rearWallZ-straightEnd,leftWood);
+// Rear wall measured run: 111 / 187 / 35 recess / 204 / 117 corridor.
+// Existing structural outline above is retained; the 117 cm bay is open.
+// Wall-clock column: immediately LEFT of 204cm display from entrance.
+block(3.24,1.48,5.61,.32,2.96,.40,pale);
+const clockFace=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.025,32),mat(0xf3f0e8));
+clockFace.rotation.x=Math.PI/2;clockFace.position.set(3.24,1.91,5.385);scene.add(clockFace);
+const hand=block(3.24,1.91,5.365,.012,.11,.012,dark);hand.rotation.z=.48;
+
+// V15: Customer-side L counter, preserving exactly the V14 floorplan (1.90 m + 1.50 m).
+// 1.15m upper top; 0.78m staff lower top. Both tiers continue around the L.
+// Upper depth=.30m: .11m OUTSIDE the customer face, .19m INSIDE.
+// Lower depth=.55m, on the staff side of the same face. All units in metres.
+const counterEdge=mat(0x303638);
+// Fine subtle pale-oak veneer, procedural texture: no fictional brand graphics.
+function makeOakMaterial(){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+ const c=canvas.getContext('2d');c.fillStyle='#dccbb0';c.fillRect(0,0,512,512);
+ let v=119;const rand=()=>{v=(v*1664525+1013904223)>>>0;return v/4294967296;};
+ for(let i=0;i<360;i++){
+  const y=rand()*512,thick=.28+rand()*1.1;
+  c.beginPath();c.moveTo(0,y);c.bezierCurveTo(160,y+(rand()-.5)*4,320,y+(rand()-.5)*4,512,y+(rand()-.5)*3);
+  c.strokeStyle=rand()>.48?'rgba(119,89,57,.065)':'rgba(255,249,234,.15)';
+  c.lineWidth=thick;c.stroke();
+ }
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+ texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);
+ return new THREE.MeshStandardMaterial({map:texture,color:0xffffff,roughness:.76,metalness:0});
+}
+const oak=makeOakMaterial();
+const customerFaceZ=3.91; // V14, customer side of the long (190cm) arm.
+const customerFaceX=1.15; // V14, customer side of the 150cm return.
+// Continuous, perfectly FLAT oak fronts from floor to the underside of the raised top.
+// Not thick solid blocks: this keeps the employee's workspace open behind both faces.
+block(2.17,.555,customerFaceZ+.012,1.90,1.11,.034,oak);
+block(customerFaceX+.012,.555,4.67,.034,1.11,1.50,oak);
+// Level 1: staff work surfaces (top surface is 78cm from floor).
+block(2.17,.765,4.185,1.90,.030,.55,oak); // 3.91 .. 4.46
+block(1.425,.765,4.67,.55,.030,1.50,oak); // 1.15 .. 1.70
+// Level 2: narrow customer product surfaces (top surface is 115cm from floor).
+block(2.17,1.13,3.95,1.90,.040,.30,oak); // 3.80 .. 4.10
+block(1.19,1.13,4.67,.30,.040,1.50,oak); // 1.04 .. 1.34
+// Countertop slim dark seam; front is still completely covered by continuous oak.
+block(2.17,1.113,3.80,1.90,.006,.008,counterEdge);
+block(1.04,1.113,4.67,.008,.006,1.50,counterEdge);
+// Static checks of the documented 11/19cm split and both floor-to-ceiling faces.
+if(Math.abs((customerFaceZ-3.80)-.11)>1e-6 || Math.abs((4.10-customerFaceZ)-.19)>1e-6)
+ console.error('V15: 30cm upper long-arm overhang calculation mismatch');
+if(Math.abs((customerFaceX-1.04)-.11)>1e-6 || Math.abs((1.34-customerFaceX)-.19)>1e-6)
+ console.error('V15: upper L-return overhang calculation mismatch');
+// V11: REFERENCE-BASED MERCHANDISING. The approved 204 cm geometry is unchanged.
+// Fine product geometry is deliberately approximate; no source photograph is projected as a fake 3D wall.
+const oilDark=new THREE.MeshStandardMaterial({color:0x22282b,roughness:.66,metalness:.18});
+const honeyWood=new THREE.MeshStandardMaterial({color:0xe4d2b2,roughness:.73});
+const cream=mat(0xf0e9d8),capDark=mat(0x292a29),green=mat(0x31543a);
+const amber=new THREE.MeshPhysicalMaterial({color:0xa66b2a,roughness:.22,metalness:.02,transparent:true,opacity:.91,clearcoat:.55});
+const cobalt=new THREE.MeshPhysicalMaterial({color:0x203b60,roughness:.23,metalness:.05,clearcoat:.6});
+const labelColors=[0xf1eadc,0xe4e6dc,0xf2e2bd,0xf0d4cf,0xd7e7d5,0xf4e9d8];
+const labels=[];
+function printedLabel(name,sub,bg=0xf1eadc,accent='#59704e'){
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+ const ctx=canvas.getContext('2d');ctx.fillStyle='#'+bg.toString(16).padStart(6,'0');ctx.fillRect(0,0,256,256);
+ ctx.fillStyle=accent;ctx.fillRect(0,0,256,18);ctx.fillRect(0,225,256,8);
+ ctx.textAlign='center';ctx.fillStyle='#34332d';ctx.font='bold 31px Arial';ctx.fillText(name,128,91);
+ ctx.font='24px Arial';ctx.fillText(sub,128,129);ctx.strokeStyle='#9d927f';ctx.strokeRect(15,30,226,179);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+ return new THREE.MeshStandardMaterial({map:texture,roughness:.84,side:THREE.DoubleSide});
+}
+const oilLabels=[printedLabel('CEMRE','BITKISEL YAG'),printedLabel('DOGAL','BAKIM YAGI',0xe6eadb),printedLabel('AROMA','UCUCU YAG',0xf1e2cf)];
+const boxLabels=[printedLabel('DOGAL','URUN',0xf3e8d7),printedLabel('BITKI','OZU',0xdce6d6),printedLabel('CEMRE','OZEL',0xe9d9dc)];
+function cylinder(x,y,z,r,h,m,segments=16){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,segments),m);o.position.set(x,y+h/2,z);scene.add(o);return o;}
+function bottle(x,y,z,r=.027,h=.105,col=amber,style=0){
+ cylinder(x,y,z,r,h*.82,col);cylinder(x,y+h*.82,z,r*.49,h*.15,col);
+ cylinder(x,y+h*.97,z,r*.56,h*.12,capDark);
+ const tag=new THREE.Mesh(new THREE.PlaneGeometry(r*1.70,h*.46),oilLabels[style%oilLabels.length]);
+ tag.position.set(x,y+h*.45,z-r-.002);scene.add(tag);
+}
+function carton(x,y,z,w=.095,h=.14,color=cream,style=0){
+ block(x,y+h/2,z,w,h,.069,color);
+ const tag=new THREE.Mesh(new THREE.PlaneGeometry(w*.89,h*.79),boxLabels[style%boxLabels.length]);tag.position.set(x,y+h*.52,z-.036);scene.add(tag);
+}
+function oilTower(x,left){
+ // Original footprint and shelf height retained. Warm shelf-edge highlights mimic actual glass shelves.
+ block(x,1.33,5.70,.46,2.64,.30,oilDark);
+ for(let j=0;j<10;j++){
+  const yy=.28+j*.232;
+  block(x,yy,5.49,.455,.017,.33,new THREE.MeshStandardMaterial({color:0xaab8b3,metalness:.28,roughness:.35}));
+  block(x,yy+.009,5.31,.455,.009,.014,mat(0xe3d8bf));
+  for(let k=0;k<4;k++){
+   const xx=x-.16+k*.106;
+   if(left&&j>6)carton(xx,yy+.014,5.40,.085,.14,j%2?mat(0x8d4552):cream,(j+k)%3);
+   else if(!left&&j>2&&j<8)carton(xx,yy+.014,5.40,.085,.14,cream,(j+k)%3);
+   else bottle(xx,yy+.018,5.39,.025,.095,j%2?cobalt:amber,(j+k)%3);
+  }
+ }
+ block(x,.22,5.69,.46,.44,.35,oilDark);
+ const handle=block(x,.25,5.502,.10,.012,.016,honeyWood);handle.rotation.z=.0;
+}
+oilTower(3.60,true);oilTower(5.10,false);
+// Photo: interlocking pale wood honeycomb shelves, offset into two vertical columns.
+function hexShelf(x,y,r,idx){
+ const pts=[];for(let i=0;i<6;i++){const theta=Math.PI/3*i;pts.push([x+r*Math.cos(theta),y+r*Math.sin(theta)]);}
+ for(let i=0;i<6;i++){
+  const p=pts[i],q=pts[(i+1)%6],dx=q[0]-p[0],dy=q[1]-p[1];
+  const edge=block((p[0]+q[0])/2,(p[1]+q[1])/2,5.59,Math.hypot(dx,dy),.067,.30,honeyWood);
+  edge.rotation.z=Math.atan2(dy,dx);
+ }
+ block(x,y-r*.37,5.55,r*1.12,.024,.25,honeyWood);
+ if(idx===0||idx===1){
+   carton(x-.12,y-r*.35+.02,5.40,.12,.18,cream,0);
+   bottle(x+.12,y-r*.35+.02,5.39,.041,.17,amber,1);
+ }else{
+  for(let k=-1;k<=1;k++){
+   bottle(x+k*.093,y-r*.35+.014,5.39,.036,.115,k%2?amber:green,(idx+k+6)%3);
+  }
+  carton(x,y+.07,5.40,.12,.13,cream,idx%3);
+ }
+}
+for(const [i,[x,y]] of [[4.12,2.36],[4.59,2.00],[4.12,1.61],[4.59,1.25],[4.12,.86],[4.59,.50]].entries())hexShelf(x,y,.34,i);
+// The low freestanding product plinth is separate from the wall and matches the source photograph.
+const podium=new THREE.MeshStandardMaterial({color:0xd7c5a9,roughness:.78});
+block(4.34,.19,5.01,1.38,.38,.35,podium);
+for(let i=0;i<7;i++){
+ const xx=3.77+i*.18;
+ carton(xx,.39,4.96,.11,.17,i%3===0?mat(0x9b6255):cream,i%3);
+ if(i%2===0)bottle(xx,.57,4.95,.033,.10,amber,i%3);
+}
+// V15 customer-facing merchandising: asymmetrical black-edged, oak-faced, wall-MOUNTED shelves.
+// All these fixtures are fixed to the uninterrupted front panel. No full-height partitions.
+const productWhite=mat(0xece8de);
+const warmBox=[0xe8e1d3,0xcadcc9,0xebd4c9,0xb9cab5,0xb3b0a7,0xdbb67d,0xd0d0bd].map(mat);
+function frontMountedShelf(x,yy,width,depth=.23){
+ const zz=customerFaceZ-(depth/2+.023);
+ block(x,yy,zz,width,.026,depth,oak);                 // blond-wood shelf top
+ block(x,yy-.012,zz-depth/2+.004,width,.027,.015,counterEdge); // dark edge
+ for(const xx of [x-width/2+.065,x+width/2-.065])
+  block(xx,yy-.073,customerFaceZ-.035,.021,.13,.085,counterEdge); // metal brackets
+ return zz;
+}
+// Left upper: a compact shelf holding boxed herbal/cosmetic goods.
+let frontZ=frontMountedShelf(1.57,.685,.68,.25);
+for(let i=0;i<5;i++){
+ const x=1.31+i*.132;
+ carton(x,.706,frontZ-.015,.103,.175,warmBox[i%warmBox.length],i%3);
+}
+// Right upper: dropper-style oils and white mini-bottles as in the reference photo.
+frontZ=frontMountedShelf(2.76,.665,.64,.27);
+for(let i=0;i<9;i++){
+ const x=2.49+i*.067;
+ bottle(x,.689,frontZ-.020,.024,.139,i%4===0?amber:productWhite,i%3);
+}
+// Mid/lower: long, low package display; individual packets lie on their faces.
+frontZ=frontMountedShelf(2.17,.354,1.62,.265);
+for(let i=0;i<13;i++){
+ const x=1.43+i*.124, pkg=warmBox[(i+3)%warmBox.length];
+ block(x,.383,frontZ-.008,.099,.045,.145,pkg);
+ block(x,.408,frontZ-.016,.069,.002,.086,productWhite);
+}
+// Bottom is intentionally not one continuous shelf; real banko has separated pods.
+frontZ=frontMountedShelf(1.48,.145,.50,.23);
+for(let i=0;i<4;i++)block(1.32+i*.108,.185,frontZ,.093,.053,.09,warmBox[i%warmBox.length]);
+frontZ=frontMountedShelf(2.19,.145,.52,.225);
+for(let i=0;i<4;i++)carton(2.02+i*.115,.160,frontZ,.093,.23,warmBox[(i+4)%warmBox.length],i%3);
+frontZ=frontMountedShelf(2.86,.145,.38,.23);
+for(let i=0;i<3;i++)carton(2.74+i*.117,.160,frontZ,.095,.18,warmBox[(i+1)%warmBox.length],i%3);
+// V15: the actual narrow upper top is crowded toward both ends, leaving central service space.
+for(let i=0;i<4;i++)carton(1.33+i*.124,1.155,3.93,.105,.14,warmBox[(i+2)%warmBox.length],i%3);
+for(let i=0;i<5;i++){
+ const x=2.59+i*.098;
+ if(i%2===0)bottle(x,1.155,3.91,.035,.17,amber,i%3);
+ else carton(x,1.155,3.91,.09,.16,warmBox[(i+3)%warmBox.length],i%3);
+}
+// Staff work surface is inside the L, rather than attached to the back wall.
+const monitor=mat(0x1e2528),screenMat=new THREE.MeshStandardMaterial({color:0x55738b,roughness:.32,emissive:0x10202c,emissiveIntensity:.20});
+block(2.48,1.22,4.33,.39,.27,.035,monitor);
+block(2.48,1.22,4.306,.34,.21,.008,screenMat);
+block(2.48,1.08,4.36,.04,.10,.05,monitor);
+block(1.75,1.13,4.38,.27,.11,.22,monitor);
+const chair=mat(0x20272a);
+block(2.42,.51,5.00,.42,.12,.40,chair);
+block(2.42,.86,5.20,.42,.60,.09,chair);
+block(2.42,.28,5.00,.06,.45,.06,monitor);
+for(const dx of [-.21,.21])block(2.42+dx,.075,5.00,.35,.035,.045,monitor);
+// Rear wall remains distinct: shelf and electrical panel, not a continuation of the counter.
+const bankTrim=mat(0x353b3d);
+for(let row=0;row<4;row++){
+ const yy=1.55+row*.28;block(1.93,yy,5.43,.95,.026,.19,bankTrim);
+ for(let i=0;i<8;i++)carton(1.54+i*.112,yy+.017,5.42,.085,.17,productWhite,(i+row)%3);
+}
+block(1.35,1.75,5.43,.36,.50,.035,mat(0x9b9d99));
+const wreath=new THREE.Mesh(new THREE.TorusGeometry(.17,.028,8,24),mat(0x9e8763));wreath.position.set(1.36,2.45,5.37);scene.add(wreath);
+const counterLight=new THREE.PointLight(0xffeddb,.85,3.1,2);counterLight.position.set(2.08,2.62,4.25);scene.add(counterLight);
+
+// Localized warm store lighting, limited to this rear section. No structural changes.
+const displayLight=new THREE.PointLight(0xffedcf,1.25,3.8,2);displayLight.position.set(4.34,2.55,4.55);scene.add(displayLight);
+// Corridor is immediately RIGHT of 204cm petek wall (final mirrored view).
+// 117–120cm structural bay, with ~60cm occupied by adjacent spice fixtures.
+// Do not place a solid wall across its entrance.
+// V16: reference-derived spice display on the existing right-rear wall.
+// Same side of the aisle as the V15 proxy. NO dangling dried-pepper display.
+const spiceIron=new THREE.MeshStandardMaterial({color:0x222728,metalness:.48,roughness:.47});
+const spiceBoard=new THREE.MeshStandardMaterial({color:0xd6c9aa,roughness:.78});
+const spiceCab=new THREE.MeshStandardMaterial({color:0xdccfb7,roughness:.84});
+const brass=new THREE.MeshStandardMaterial({color:0xa78342,metalness:.68,roughness:.30});
+const jarGlass=new THREE.MeshPhysicalMaterial({color:0xe8e1cf,transparent:true,opacity:.26,roughness:.16,metalness:0,depthWrite:false,side:THREE.DoubleSide});
+const spicePalette=[0x933728,0x676c41,0xc2a06d,0x5b4834,0xb98a3c,0x8b5632,0x947956,0x45392d,0x8c3330];
+// The photographed display is a linear wall cabinet, with four shelf bays.
+// Structural proxy's x-plane maintained, cabinet runs parallel to right wall.
+// Rear end remains at z=5.39 m. Front end meets the wall corner z=3.00 m.
+const rackX=6.35,rackRear=5.39,rackFront=3.00;
+const rackLength=rackRear-rackFront,rackZ=(rackRear+rackFront)/2;
+// Base cupboards: pale wood, separate doors and rope-like curved handles.
+block(rackX,.405,rackZ,.51,.81,rackLength,spiceCab);
+for(let i=0;i<5;i++){
+ const zz=rackZ-rackLength/2+(i+.5)*rackLength/5;
+ block(rackX-.266,.42,zz,.018,.75,.007,spiceBoard);
+ block(rackX-.284,.48,zz+.13,.021,.095,.018,brass);
+}
+// Uprights and cream shelves, with black steel outline.
+for(const zz of [rackZ-rackLength/2,rackZ,rackZ+rackLength/2]){
+ block(rackX,1.79,zz,.44,2.70,.032,spiceIron);
+}
+const levels=[.89,1.48,2.08,2.71];
+for(const y of levels){
+ block(rackX,y,rackZ,.48,.048,rackLength,spiceBoard);
+ block(rackX-.244,y,rackZ,.024,.057,rackLength,spiceIron);
+}
+// Real jars: rounded glass vessels, varied spice content, brass lids.
+function spiceJar(z,y,shade,r=.086,h=.34){
+ const x=rackX-.105;
+ const filling=new THREE.Mesh(new THREE.CylinderGeometry(r*.89,r*.91,h*.70,16),
+   new THREE.MeshStandardMaterial({color:shade,roughness:.98}));
+ filling.position.set(x,y+h*.39,z);scene.add(filling);
+ const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),jarGlass);
+ shell.position.set(x,y+h/2,z);scene.add(shell);
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(r*.94,r*.94,.075,20),brass);
+ neck.position.set(x,y+h+.018,z);scene.add(neck);
+ const knob=new THREE.Mesh(new THREE.SphereGeometry(.022,12,8),brass);
+ knob.position.set(x,y+h+.068,z);scene.add(knob);
+ // Small rectangular jar tag turned toward aisle (-x).
+ const lab=block(x-r-.008,y+h*.47,z,.008,.095,.11,spiceBoard);
+}
+for(let row=0;row<3;row++){
+ const yy=[.92,1.51,2.11][row];
+ for(let j=0;j<9;j++){
+   const zz=rackFront+.12+j*(rackLength-.24)/8;
+   spiceJar(zz,yy,spicePalette[(j+row*3)%spicePalette.length],.078,.35);
+ }
+}
+// Tall white paper tubes along the top, following the source photograph.
+const canMaterial=new THREE.MeshStandardMaterial({color:0xece7d9,roughness:.90});
+for(let j=0;j<19;j++){
+ const zz=rackFront+.07+j*(rackLength-.14)/18;
+ const can=new THREE.Mesh(new THREE.CylinderGeometry(.048,.048,.235,12),canMaterial);
+ can.position.set(rackX-.08,2.86,zz);scene.add(can);
+}
+// Warm light localized at the jars, without relocating the fixtures.
+const spiceGlow=new THREE.PointLight(0xffe3b1,.55,2.1,2);
+spiceGlow.position.set(5.94,2.43,rackZ);scene.add(spiceGlow);
+block(5.95,-.085,6.72,1.18,.16,2.05,floor);
+line(5.37,5.95,5.37,7.65,2.90,wall);
+line(6.54,5.95,6.54,7.65,2.90,wall);
+block(5.95,3.05,6.72,1.18,.10,2.05,mat(0xf5f2ec));
+
+// V44 — Real storefront right side display; no invented glass dividers.
+// Coordinates are PRE-MIRROR; subsequent original mirror maintains the approved
+// right-hand window location. Unit dimensions: 221cm along glass (Z), 36cm deep
+// (X), 203cm overall high, 13cm free feet; 3cm square black steel sections.
+// Five pale oak shelf boards: 221 x 30 x 3cm, centered within the steel depth.
+// Static fixture remains simple for the customer's legacy graphics hardware.
+const v44Steel=new THREE.MeshStandardMaterial({color:0x171a19,roughness:.78,metalness:.15});
+const v44Oak=new THREE.MeshStandardMaterial({color:0xd0b995,roughness:.82,metalness:0});
+const v44Ceramic=[0x442f28,0x9b5338,0x312f33,0x6c5c45].map(c=>mat(c));
+const v44Salt=new THREE.MeshStandardMaterial({color:0xf58a64,emissive:0xbe3d15,emissiveIntensity:.24,roughness:.96});
+const v44X=7.38,v44Z=1.50,v44Width=2.21,v44Depth=.36,v44Tall=2.03;
+const v44InnerX=v44X-.01;
+const v44ZPositions=[v44Z-v44Width/2,v44Z-v44Width/6,v44Z+v44Width/6,v44Z+v44Width/2];
+// V46: Only the TWO OUTER side frames extend above the highest oak shelf.
+// Interior vertical supports STOP flush with the top shelf (no spikes among pots).
+// The front and rear top rails connect the outer side frames, leaving a clear
+// open bay above the final oak board as in the owner's reference photo.
+for(let i=0;i<v44ZPositions.length;i++){
+ const zz=v44ZPositions[i];
+ const outer=(i===0||i===v44ZPositions.length-1);
+ const poleTop=outer?v44Tall:1.825+.015;
+ for(const xx of [v44X-v44Depth/2+.015,v44X+v44Depth/2-.015]){
+  block(xx,poleTop/2,zz,.03,poleTop,.03,v44Steel);
+ }
+}
+// Five tiers, all 30mm thick. The lowest wooden level is 13cm above ground.
+const v44Ys=[.145,.565,.985,1.405,1.825];
+for(const y of v44Ys){
+ block(v44X,y,v44Z,.30,.03,v44Width,v44Oak);
+ // Thin steel ledges support each board at the ends, with unobtrusive central divisions.
+ for(const zz of [v44Z-v44Width/2,v44Z,v44Z+v44Width/2])
+  block(v44X,y-.025,zz,.36,.025,.03,v44Steel);
+}
+// V46: Continuous upper horizontal steel rails connect ONLY the outer side
+// supports; the central verticals do not project into the open planter zone.
+for(const xx of [v44X-v44Depth/2+.015,v44X+v44Depth/2-.015]){
+ block(xx,v44Tall-.015,v44Z,.03,.03,v44Width,v44Steel);
+ block(xx,.13,v44Z,.03,.03,v44Width,v44Steel);
+}
+// Light placeholder objects following actual photo's product categories, not exact SKUs.
+const v44Pot=mat(0x9a7658),v44Leaf=mat(0x3c6943);
+function v44Gift(x,y,z,k){
+ const b=new THREE.Mesh(new THREE.SphereGeometry(.061,10,8),v44Ceramic[k%4]);
+ b.position.set(x,y+.07,z);scene.add(b);
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(.013,.026,.027,8),v44Ceramic[k%4]);
+ neck.position.set(x,y+.14,z);scene.add(neck);
+}
+function v44Lamp(x,y,z,r){
+ const o=new THREE.Mesh(new THREE.DodecahedronGeometry(r,1),v44Salt);
+ o.position.set(x,y+r,z);scene.add(o);
+ block(x,y-.004,z,r*.85,.008,r*.85,v44Oak);
+}
+for(let row=1;row<4;row++){
+ const y=v44Ys[row]+.018;
+ for(let k=0;k<6;k++){
+  const zz=v44Z-.94+k*.376;
+  if((row+k)%4===0)v44Lamp(v44InnerX,y,zz,.072+(k%2)*.012);
+  else v44Gift(v44InnerX,y,zz,k+row);
+ }
+}
+// Larger salt pieces on the lower timber surface.
+for(const zz of [v44Z-.64,v44Z+.02,v44Z+.65])v44Lamp(v44InnerX,v44Ys[0]+.02,zz,.105);
+// Three planters on top shelf.
+for(const zz of [v44Z-.73,v44Z,v44Z+.73]){
+ const pot=new THREE.Mesh(new THREE.CylinderGeometry(.094,.069,.12,10),v44Pot);
+ pot.position.set(v44InnerX,v44Ys[4]+.075,zz);scene.add(pot);
+ for(let k=0;k<4;k++){
+  const blade=new THREE.Mesh(new THREE.SphereGeometry(.047,8,6),v44Leaf);
+  blade.scale.set(.65,1.9,.55);
+  blade.position.set(v44InnerX+.055*Math.sin(k*1.57),v44Ys[4]+.22,.055*Math.cos(k*1.57)+zz);
+  blade.rotation.z=Math.sin(k*1.57)*.4;scene.add(blade);
+ }
+}
+// V42 — Two 150 × 75 × 80 cm stepped displays centered against the street-front
+// glazing on EITHER side of the 158 cm entrance door. Coordinates are PRE-mirror.
+// The tall 75cm-high back faces the glass (z=0), with the steps DESCENDING
+// toward the shop interior (+z); a 5cm recessed foot brings overall height to 80cm.
+// Each riser height and step run is exactly 25cm. No existing fixtures are moved.
+const v42Oak=new THREE.MeshStandardMaterial({color:0xd4b891,roughness:.83,metalness:0});
+const v42Edge=new THREE.MeshStandardMaterial({color:0xc6a77e,roughness:.86,metalness:0});
+function makeEntranceSteps(centerX){
+ const width=1.50,stepRun=.25,foot=.05,zBack=.14;
+ // Three flush full-width sections give a clean stair-step silhouette.
+ for(let level=0;level<3;level++){
+   const height=(3-level)*.25;
+   block(centerX,foot+height/2,zBack+(level+.5)*stepRun,width,height,stepRun,v42Oak);
+   // thin upper edge trim, kept inside step footprint
+   block(centerX,foot+height-.008,zBack+(level+.5)*stepRun,width,.016,stepRun,v42Edge);
+ }
+ // Recessed 5 cm plinth: visually distinct from the 25cm risers.
+ block(centerX,.025,zBack+.375,1.42,.05,.68,v42Oak);
+}
+// Two 150cm displays, centered on the 220cm and 250cm glazing bays.
+// The 95cm intermediate pane stays clear, as seen in the measured sketch.
+makeEntranceSteps((v43Front.leftGlass[0]+v43Front.leftGlass[1])/2);
+makeEntranceSteps((v43Front.rightGlass[0]+v43Front.rightGlass[1])/2);
+// V47 — Measured 119cm RETURN WALL next to the salt-lamp side-window fixture.
+// This wall runs from x=6.54 to x=7.73 along z=3.00 in PRE-MIRROR coords.
+// The FRONT of the new unit faces the storefront (toward decreasing z).
+// 119cm wide x 80cm high x 25cm deep base; 119cm x 140cm x 2cm
+// vertical slotted panel above: total height 220cm, 4 horizontal channels.
+const v47Oak=new THREE.MeshStandardMaterial({color:0xd7c2a0,roughness:.85,metalness:0});
+const v47OakEdge=new THREE.MeshStandardMaterial({color:0xbda782,roughness:.84,metalness:0});
+const v47Metal=new THREE.MeshStandardMaterial({color:0x999fa2,roughness:.42,metalness:.58});
+const v47Slot=new THREE.MeshStandardMaterial({color:0x444c50,roughness:.72,metalness:.24});
+const v47CX=(6.54+7.73)/2,v47WallZ=3.00;
+const v47FrontZ=2.73,v47BaseD=.25,v47BaseH=.80;
+// Solid cabinet below the compartment tray, with a slim oak outer face.
+block(v47CX,.35,v47FrontZ+.125,1.19,.70,.25,v47Oak);
+block(v47CX,.385,v47FrontZ-.004,1.17,.74,.015,v47OakEdge);
+// Five open-top pockets, 10 cm internal depth (downwards).
+const v47BinY=.70,v47BinFloor=.695;
+block(v47CX,v47BinFloor,v47FrontZ+.125,1.19,.01,.25,v47OakEdge);
+for(const xEdge of [6.54,7.73])block(xEdge,.75,v47FrontZ+.125,.018,.10,.25,v47OakEdge);
+for(let k=1;k<5;k++){
+ const xx=6.54+1.19*k/5;
+ block(xx,.75,v47FrontZ+.125,.012,.10,.25,v47OakEdge);
+}
+// Front/rear low rims keep the compartments open towards the ceiling.
+for(const zz of [v47FrontZ+.009,v47FrontZ+.241])block(v47CX,.755,zz,1.19,.09,.018,v47OakEdge);
+// Wall panel begins exactly at top of cabinet and ends at 220cm above floor.
+// A thin 2cm oak face sits in front of the existing 119cm wall section.
+const v47PanelZ=2.914;
+block(v47CX,1.50,v47PanelZ,1.19,1.40,.020,v47Oak);
+// 4 horizontal 2cm slotted mounting tracks. First begins 5cm below top.
+// Remaining centres distributed uniformly with a matching 5cm lower margin.
+const v47TrackTop=2.20-.05-.01,v47TrackBottom=.80+.05+.01;
+for(let k=0;k<4;k++){
+ const y=v47TrackTop+(v47TrackBottom-v47TrackTop)*k/3;
+ // dark recessed 2cm opening, with an understated steel edge top/bottom
+ block(v47CX,y,v47PanelZ-.012,1.155,.020,.004,v47Slot);
+ for(const dy of [-.011,.011])block(v47CX,y+dy,v47PanelZ-.016,1.155,.003,.006,v47Metal);
+}
+// No sample hooks are installed: the entire hanging panel is visible for checks.
+// Mirror the old V3 model horizontally: its glass side was mistakenly on the viewer's left.
+// Camera faces +Z into the shop. Its RIGHT is therefore -X.
+for(const object of scene.children){if(object.isMesh){object.position.x=W-object.position.x;object.rotation.y=-object.rotation.y;}}
+// Verify that the 300 cm side glazing is on the entrance viewer's right (x=0.82).
+const rightGlass=scene.children.filter(o=>o.isMesh&&o.material===glass&&Math.abs(o.position.x-(W-v48PaneX))<.03&&Math.abs(o.position.z-(v48SideStart+v48SideEnd)/2)<.03);
+if(rightGlass.length!==1)console.error('Right-hand 300 cm glazing placement check failed');
+// entrance camera facing toward rear
+// V39 performance: bake static, opaque meshes sharing a material into one draw call.
+// This pass runs AFTER scene mirroring and does not move any furniture or controls.
+function batchStaticOpaqueMeshes(){
+ const bins=new Map();
+ for(const mesh of [...scene.children]){
+  if(!mesh.isMesh || !mesh.geometry?.attributes?.position || !mesh.material ||
+     Array.isArray(mesh.material) || mesh.material.transparent || mesh.material.transmission>0 ||
+     mesh.isSkinnedMesh || mesh.isInstancedMesh)continue;
+  const geom=mesh.geometry;
+  if(!geom.attributes.normal || !geom.attributes.uv)continue;
+  // Different shadow flags need separate batches.
+  const key=mesh.material.uuid+'|'+Number(mesh.castShadow)+'|'+Number(mesh.receiveShadow);
+  if(!bins.has(key))bins.set(key,[]);
+  bins.get(key).push(mesh);
+ }
+ let merged=0, batches=0;
+ for(const group of bins.values()){
+  if(group.length<2)continue;
+  const positions=[],normals=[],uvs=[];
+  const material=group[0].material;
+  for(const mesh of group){
+   mesh.updateMatrix();
+   // Materialize transforms; preserve both position and vertex normals.
+   const g=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();
+   g.applyMatrix4(mesh.matrix);
+   const p=g.attributes.position,n=g.attributes.normal,u=g.attributes.uv;
+   for(let i=0;i<p.count;i++){
+    positions.push(p.getX(i),p.getY(i),p.getZ(i));
+    normals.push(n.getX(i),n.getY(i),n.getZ(i));
+    uvs.push(u.getX(i),u.getY(i));
+   }
+   g.dispose();
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+  g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,material);
+  m.castShadow=group[0].castShadow;
+  m.receiveShadow=group[0].receiveShadow;
+  for(const mesh of group)scene.remove(mesh);
+  scene.add(m);
+  merged+=group.length;batches++;
+ }
+ console.info('Cemre V39 static mesh batching:',merged,'meshes in',batches,'draw groups; scene objects',scene.children.length);
+}
+// V40 legacy GPU: physically based lighting is expensive on EAH5450-class hardware.
+// Convert shared opaque PBR materials to a single-light Lambert shader, keeping wood maps.
+// This does not modify geometry or camera position.
+const legacyMaterials=new Map();
+scene.traverse(obj=>{
+ if(!obj.isMesh || !obj.material || Array.isArray(obj.material))return;
+ const old=obj.material;
+ if(!(old.isMeshStandardMaterial || old.isMeshPhysicalMaterial))return;
+ if(!legacyMaterials.has(old)){
+   legacyMaterials.set(old,new THREE.MeshLambertMaterial({
+     color:old.color.clone(), map:old.map||null,
+     transparent:old.transparent, opacity:old.opacity, depthWrite:old.depthWrite,
+     side:old.side, alphaTest:old.alphaTest, vertexColors:old.vertexColors,
+     emissive:old.emissive ? old.emissive.clone() : new THREE.Color(0),
+     emissiveMap:old.emissiveMap||null, emissiveIntensity:old.emissiveIntensity||0
+   }));
+ }
+ obj.material=legacyMaterials.get(old);
+ obj.castShadow=false;obj.receiveShadow=false;
+});
+batchStaticOpaqueMeshes();
+// V41: Balanced GPU settings plus optional single-pass FXAA.
+// No camera, shelf geometry, collision or scene coordinates are changed.
+const qualityBtn=document.getElementById('quality');
+const aaBtn=document.getElementById('aa');
+const qualityModes=[['Dengeli',0.8],['Net',0.95],['Hafif',0.65]];
+let qualityStep=0,fxaaEnabled=true;
+const fxaaTarget=new THREE.WebGLRenderTarget(1,1,{
+  minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,
+  format:THREE.RGBAFormat,depthBuffer:true,stencilBuffer:false
+});
+const fxaaUniforms={tDiffuse:{value:fxaaTarget.texture},resolution:{value:new THREE.Vector2(1,1)}};
+const fxaaMaterial=new THREE.ShaderMaterial({
+ depthTest:false,depthWrite:false,
+ uniforms:fxaaUniforms,
+ vertexShader:`varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
+ fragmentShader:`precision mediump float;
+ uniform sampler2D tDiffuse;uniform vec2 resolution;varying vec2 vUv;
+ void main(){
+ vec2 r=1.0/resolution;
+ vec3 a=texture2D(tDiffuse,vUv+vec2(-1.,-1.)*r).rgb;
+ vec3 b=texture2D(tDiffuse,vUv+vec2( 1.,-1.)*r).rgb;
+ vec3 c=texture2D(tDiffuse,vUv+vec2(-1., 1.)*r).rgb;
+ vec3 d=texture2D(tDiffuse,vUv+vec2( 1., 1.)*r).rgb;
+ vec3 m=texture2D(tDiffuse,vUv).rgb;
+ vec3 luma=vec3(0.299,0.587,0.114);
+ float la=dot(a,luma),lb=dot(b,luma),lc=dot(c,luma),ld=dot(d,luma),lm=dot(m,luma);
+ float lmin=min(lm,min(min(la,lb),min(lc,ld)));
+ float lmax=max(lm,max(max(la,lb),max(lc,ld)));
+ vec2 dir=vec2(-((la+lb)-(lc+ld)),(la+lc)-(lb+ld));
+ float reduce=max((la+lb+lc+ld)*0.03125,0.0078125);
+ float inv=1.0/(min(abs(dir.x),abs(dir.y))+reduce);
+ dir=clamp(dir*inv,vec2(-8.),vec2(8.))*r;
+ vec3 rgbA=0.5*(texture2D(tDiffuse,vUv+dir*(1./3.-0.5)).rgb+texture2D(tDiffuse,vUv+dir*(2./3.-0.5)).rgb);
+ vec3 rgbB=rgbA*0.5+0.25*(texture2D(tDiffuse,vUv+dir*(-0.5)).rgb+texture2D(tDiffuse,vUv+dir*0.5).rgb);
+ float lB=dot(rgbB,luma);
+ vec3 finalRgb=(lB<lmin||lB>lmax)?rgbA:rgbB;
+ // Skip smoothing when there is effectively no edge.
+ gl_FragColor=vec4((lmax-lmin)<0.045?m:finalRgb,1.);
+ }`
+});
+const fxaaScene=new THREE.Scene(),fxaaCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+fxaaScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),fxaaMaterial));
+function resizeGraphics(){
+ renderer.setSize(innerWidth,innerHeight);
+ const w=renderer.domElement.width,h=renderer.domElement.height;
+ fxaaTarget.setSize(w,h);fxaaUniforms.resolution.value.set(w,h);
+}
+function renderFrame(){
+ if(fxaaEnabled){renderer.setRenderTarget(fxaaTarget);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(fxaaScene,fxaaCamera);}
+ else renderer.render(scene,camera);
+ if(!window.cemre3dReady && window.cemreMarkReady)window.cemreMarkReady();
+}
+resizeGraphics();
+qualityBtn.addEventListener('click',()=>{
+ qualityStep=(qualityStep+1)%qualityModes.length;
+ const [label,ratio]=qualityModes[qualityStep];
+ renderer.setPixelRatio(ratio);resizeGraphics();
+ qualityBtn.textContent='Görüntü: '+label;
+});
+aaBtn.addEventListener('click',()=>{fxaaEnabled=!fxaaEnabled;aaBtn.textContent='Kenar: '+(fxaaEnabled?'Açık':'Kapalı');});
+camera.position.set(W-4.32,1.67,.28);let yaw=Math.PI,pitch=0;function orient(){camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch}orient();const keys=new Set();onkeydown=e=>keys.add(e.key.toLowerCase());onkeyup=e=>keys.delete(e.key.toLowerCase());document.querySelectorAll('button[data-m]').forEach(b=>{const k=b.dataset.m;b.onpointerdown=e=>{e.preventDefault();keys.add(k);b.setPointerCapture(e.pointerId)};b.onpointerup=()=>keys.delete(k);b.onpointercancel=()=>keys.delete(k)});let dragging=false,px=0,py=0;const look=document.getElementById('look');look.onpointerdown=e=>{dragging=true;px=e.clientX;py=e.clientY;look.setPointerCapture(e.pointerId)};look.onpointermove=e=>{if(!dragging)return;yaw-=(e.clientX-px)*.0026;pitch=Math.max(-1.10,Math.min(1.10,pitch-(e.clientY-py)*.0026));px=e.clientX;py=e.clientY;orient()};look.onpointerup=()=>dragging=false;renderer.domElement.onpointerdown=e=>{dragging=true;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)};renderer.domElement.onpointermove=e=>{if(!dragging)return;yaw-=(e.clientX-px)*.0026;pitch=Math.max(-1.10,Math.min(1.10,pitch-(e.clientY-py)*.0026));px=e.clientX;py=e.clientY;orient()};renderer.domElement.onpointerup=()=>dragging=false;
+let last=performance.now(),fpsTime=last,fpsFrames=0;const fpsNode=document.getElementById('fps');function animate(t){fpsFrames++;if(t-fpsTime>1200){fpsNode.textContent=Math.round(fpsFrames*1000/(t-fpsTime))+' FPS';fpsFrames=0;fpsTime=t;}const dt=Math.min((t-last)/1000,.05);last=t;let f=Number(keys.has('w')||keys.has('f'))-Number(keys.has('s')||keys.has('b'));let r=Number(keys.has('d')||keys.has('r'))-Number(keys.has('a')||keys.has('l'));const sp=2.0*dt;const nx=camera.position.x-Math.sin(yaw)*f*sp+Math.cos(yaw)*r*sp,nz=camera.position.z-Math.cos(yaw)*f*sp-Math.sin(yaw)*r*sp;const centerCollision=Math.abs(nx-(W-4.35))<1.16&&Math.abs(nz-2.35)<.78;if(nx>.25&&nx<7.45&&nz>-.4&&nz<7.30&&!centerCollision){camera.position.x=nx;camera.position.z=nz}renderFrame();requestAnimationFrame(animate)}requestAnimationFrame(animate);onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();resizeGraphics()};
+</script></body></html>
